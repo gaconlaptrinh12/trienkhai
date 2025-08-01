@@ -17,7 +17,7 @@ spec:
       containers:
       - name: minio
         image: minio/minio:latest
-        command: ["server", "/data", "--console-address", ":9001"]
+        args: ["server", "/data", "--console-address", ":9001"]
         ports:
         - containerPort: 9000
         - containerPort: 9001
@@ -65,7 +65,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  # Đổi tên để tránh xung đột
+  # Đổi tên để tránh xung đột và dễ nhận biết
   name: minio-loadbalancer 
 spec:
   type: LoadBalancer
@@ -80,4 +80,3 @@ spec:
     protocol: TCP
     port: 9001
     targetPort: 9001
-
