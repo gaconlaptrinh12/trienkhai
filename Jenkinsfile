@@ -55,7 +55,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withKubeConfig(credentialsId: KUBECONFIG_CREDENTIAL_ID) {
+                withKubeConfig(credentialsId: KubeConfigID) {
                     bat 'kubectl apply -f secret.yml'
                     bat 'kubectl apply -f db-deployment.yml'
                     bat 'kubectl apply -f minio-deployment.yml'
