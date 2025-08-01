@@ -3,7 +3,8 @@ kind: StatefulSet
 metadata:
   name: minio
 spec:
-  serviceName: "minio-service"
+  # serviceName phải trỏ đến Headless Service
+  serviceName: "minio-headless" 
   replicas: 1
   selector:
     matchLabels:
@@ -43,10 +44,29 @@ spec:
         requests:
           storage: 10Gi
 ---
+# THÊM MỚI: Headless Service cho StatefulSet hoạt động
 apiVersion: v1
 kind: Service
 metadata:
-  name: minio-service
+  name: minio-headless
+spec:
+  clusterIP: None # Định nghĩa đây là headless service
+  selector:
+    app: minio
+  ports:
+  - name: api
+    port: 9000
+    targetPort: 9000
+  - name: console
+    port: 9001
+    targetPort: 9001
+---
+# SỬA LẠI: Service LoadBalancer để truy cập từ bên ngoài
+apiVersion: v1
+kind: Service
+metadata:
+  # Đổi tên để tránh xung đột
+  name: minio-loadbalancer 
 spec:
   type: LoadBalancer
   selector:
@@ -60,3 +80,4 @@ spec:
     protocol: TCP
     port: 9001
     targetPort: 9001
+
