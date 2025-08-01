@@ -20,17 +20,18 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMinioClient _minioClient;
+        private readonly IConfiguration _configuration; // Thêm IConfiguration để đọc cấu hình
 
-        public AdminProductController(ApplicationDbContext context, IMinioClient minioClient)
+        public AdminProductController(ApplicationDbContext context, IMinioClient minioClient, IConfiguration configuration)
         {
             _context = context;
             _minioClient = minioClient;
+            _configuration = configuration; // Khởi tạo IConfiguration
         }
 
         // GET: Admin/AdminProduct
         public async Task<IActionResult> Index()
         {
-            // Lấy sản phẩm kèm theo thông tin danh mục
             var products = await _context.Products.Include(p => p.Category).ToListAsync();
             return View(products);
         }
@@ -38,7 +39,6 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
         // GET: Admin/AdminProduct/Create
         public IActionResult Create()
         {
-            // Sử dụng ViewBag để truyền danh sách danh mục cho View
             ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name");
             return View();
         }
@@ -50,7 +50,6 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
             [Bind("Name,Description,Price,Stock,CategoryId")] Product product,
             IFormFile? imageFile)
         {
-            // SỬA LỖI: Thêm 2 dòng này để loại bỏ các lỗi validation không cần thiết
             ModelState.Remove("ImageUrl");
             ModelState.Remove("Category");
 
@@ -58,22 +57,19 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
             {
                 if (imageFile != null)
                 {
-                    // Lưu ảnh và gán đường dẫn cho sản phẩm
-                    product.ImageUrl = await SaveImage(imageFile);
+                    product.ImageUrl = await SaveImageAndSetPolicy(imageFile);
                 }
                 else
                 {
-                    // Cung cấp một ảnh mặc định nếu không có ảnh nào được tải lên
                     product.ImageUrl = "/images/default-product.png";
                 }
 
                 _context.Add(product);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Đã thêm sản phẩm mới thành công!"; // Thêm thông báo thành công
+                TempData["SuccessMessage"] = "Đã thêm sản phẩm mới thành công!";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Nếu model không hợp lệ, gửi lại danh sách danh mục và hiển thị lại form
             ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
             return View(product);
         }
@@ -93,42 +89,24 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,
-    [Bind("Id,Name,Description,Price,Stock,CategoryId,ImageUrl")] Product productFromForm,
-    IFormFile? imageFile)
+            [Bind("Id,Name,Description,Price,Stock,CategoryId,ImageUrl")] Product productFromForm,
+            IFormFile? imageFile)
         {
-            if (id != productFromForm.Id)
-            {
-                return NotFound();
-            }
+            if (id != productFromForm.Id) return NotFound();
 
-            // SỬA LỖI: Tạm thời xóa lỗi của trường Category để ModelState.IsValid hoạt động đúng
             ModelState.Remove("Category");
 
             if (ModelState.IsValid)
             {
-                // **BẮT ĐẦU PHẦN SỬA LỖI QUAN TRỌNG**
-
-                // 1. Lấy sản phẩm gốc từ cơ sở dữ liệu
                 var productToUpdate = await _context.Products.FindAsync(id);
-                if (productToUpdate == null)
-                {
-                    return NotFound();
-                }
+                if (productToUpdate == null) return NotFound();
 
-                // 2. Xử lý ảnh (nếu có ảnh mới được tải lên)
                 if (imageFile != null)
                 {
-                    // Xóa ảnh cũ trước
-                    if (!string.IsNullOrEmpty(productToUpdate.ImageUrl))
-                    {
-                        DeleteImage(productToUpdate.ImageUrl);
-                    }
-                    // Lưu ảnh mới và cập nhật đường dẫn
-                    productToUpdate.ImageUrl = await SaveImage(imageFile);
+                    await DeleteImage(productToUpdate.ImageUrl);
+                    productToUpdate.ImageUrl = await SaveImageAndSetPolicy(imageFile);
                 }
-                // Nếu không có ảnh mới, productToUpdate.ImageUrl sẽ giữ nguyên giá trị cũ.
 
-                // 3. Cập nhật các thuộc tính của sản phẩm gốc với dữ liệu từ form
                 productToUpdate.Name = productFromForm.Name;
                 productToUpdate.Description = productFromForm.Description;
                 productToUpdate.Price = productFromForm.Price;
@@ -137,25 +115,17 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
 
                 try
                 {
-                    // 4. Lưu lại các thay đổi vào cơ sở dữ liệu
                     await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Đã cập nhật sản phẩm thành công!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!_context.Products.Any(e => e.Id == productToUpdate.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!_context.Products.Any(e => e.Id == productToUpdate.Id)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
 
-            // Nếu model không hợp lệ, gửi lại danh sách danh mục và hiển thị lại form
             ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name", productFromForm.CategoryId);
             return View(productFromForm);
         }
@@ -178,31 +148,53 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
             var product = await _context.Products.FindAsync(id);
             if (product != null)
             {
-                if (!string.IsNullOrEmpty(product.ImageUrl))
-                {
-                    DeleteImage(product.ImageUrl);
-                }
+                await DeleteImage(product.ImageUrl);
                 _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Đã xóa sản phẩm thành công!";
             }
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task<string> SaveImage(IFormFile imageFile)
+        // =================================================================
+        // HÀM XỬ LÝ ẢNH ĐÃ ĐƯỢC CẬP NHẬT ĐỂ TỰ ĐỘNG SET POLICY
+        // =================================================================
+
+        private async Task<string> SaveImageAndSetPolicy(IFormFile imageFile)
         {
-            var bucketName = "products"; // Tên bucket trên MinIO
+            var bucketName = "products";
             var objectName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
 
-            // Kiểm tra xem bucket đã tồn tại chưa
-            var bucketExistsArgs = new BucketExistsArgs().WithBucket(bucketName);
-            bool found = await _minioClient.BucketExistsAsync(bucketExistsArgs);
+            // 1. Kiểm tra xem bucket đã tồn tại chưa
+            var beArgs = new BucketExistsArgs().WithBucket(bucketName);
+            bool found = await _minioClient.BucketExistsAsync(beArgs);
             if (!found)
             {
-                var makeBucketArgs = new MakeBucketArgs().WithBucket(bucketName);
-                await _minioClient.MakeBucketAsync(makeBucketArgs);
+                // Nếu chưa có, tạo bucket mới
+                var mbArgs = new MakeBucketArgs().WithBucket(bucketName);
+                await _minioClient.MakeBucketAsync(mbArgs);
+
+                // *** BẮT ĐẦU PHẦN QUAN TRỌNG: TỰ ĐỘNG ĐẶT POLICY ***
+                // Tạo một policy JSON cho phép đọc công khai
+                var policyJson = $@"{{
+                    ""Version"": ""2012-10-17"",
+                    ""Statement"": [
+                        {{
+                            ""Effect"": ""Allow"",
+                            ""Principal"": {{""AWS"":[""*""]}},
+                            ""Action"": [""s3:GetObject""],
+                            ""Resource"": [""arn:aws:s3:::{bucketName}/*""]
+                        }}
+                    ]
+                }}";
+                // Đặt policy cho bucket vừa tạo
+                var spArgs = new SetPolicyArgs().WithBucket(bucketName).WithPolicy(policyJson);
+                await _minioClient.SetPolicyAsync(spArgs);
+                Console.WriteLine($"Bucket '{bucketName}' created and policy set to public read.");
+                // *** KẾT THÚC PHẦN QUAN TRỌNG ***
             }
 
-            // Upload file lên MinIO
+            // 2. Upload file lên MinIO
             await _minioClient.PutObjectAsync(
                 new PutObjectArgs()
                     .WithBucket(bucketName)
@@ -212,50 +204,32 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
                     .WithContentType(imageFile.ContentType)
             );
 
-            // Trả về URL của ảnh, bạn cần cấu hình public access cho bucket
-            // Hoặc tạo URL có chữ ký (presigned URL)
-            var minioEndpoint = "localhost:9000"; // Lấy từ config
-            return $"http://{minioEndpoint}/{bucketName}/{objectName}";
+            // 3. Trả về URL của ảnh
+            var publicEndpoint = _configuration["Minio:PublicEndpoint"] ?? "localhost:9000";
+            return $"http://{publicEndpoint}/{bucketName}/{objectName}";
         }
 
         private async Task DeleteImage(string imageUrl)
         {
-            // 1. Kiểm tra để không xóa URL rỗng hoặc ảnh mặc định
-            if (string.IsNullOrEmpty(imageUrl) || imageUrl.EndsWith("default-product.png"))
+            if (string.IsNullOrEmpty(imageUrl) || imageUrl.Contains("default-product.png"))
             {
                 return;
             }
 
             try
             {
-                // 2. Phân tích URL để lấy tên bucket và tên object
                 var uri = new Uri(imageUrl);
-                // AbsolutePath sẽ có dạng "/bucketName/objectName.jpg"
                 var pathSegments = uri.AbsolutePath.Trim('/').Split('/');
-
-                // URL phải có ít nhất 2 phần: bucket và object
-                if (pathSegments.Length < 2)
-                {
-                    // Có thể log lại lỗi nếu URL không đúng định dạng
-                    return;
-                }
+                if (pathSegments.Length < 2) return;
 
                 var bucketName = pathSegments[0];
-                var objectName = string.Join("/", pathSegments.Skip(1)); // Xử lý trường hợp tên object chứa dấu '/'
+                var objectName = string.Join("/", pathSegments.Skip(1));
 
-                // 3. Tạo yêu cầu xóa object
-                var args = new RemoveObjectArgs()
-                    .WithBucket(bucketName)
-                    .WithObject(objectName);
-
-                // 4. Gọi MinIO client để thực hiện xóa
+                var args = new RemoveObjectArgs().WithBucket(bucketName).WithObject(objectName);
                 await _minioClient.RemoveObjectAsync(args);
             }
             catch (Exception ex)
             {
-                // Ghi lại log lỗi để debug. 
-                // Trong nhiều trường hợp, bạn có thể bỏ qua lỗi khi xóa (ví dụ: file không tồn tại),
-                // nhưng việc log lại sẽ giúp theo dõi các vấn đề không mong muốn.
                 Console.WriteLine($"Error deleting image from MinIO: {imageUrl}. Exception: {ex.Message}");
             }
         }
