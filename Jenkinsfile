@@ -4,6 +4,8 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS_ID = 'WebBanHangOnline'
         DOCKER_IMAGE_NAME = "springmuch/webbanhangonline" 
+	SOLUTION_NAME = "WebBanHangOnline.sln"
+        PROJECT_NAME = "WebBanHangOnline.csproj"
     }
 
     stages {
@@ -22,10 +24,10 @@ pipeline {
         }
 
         stage('Build Project') {
-            steps {
-                echo 'Building the project on agent...'
-                bat 'dotnet build WebBanHangOnline.sln --configuration Release --no-restore'
-            }
+            dir('WebBanHangOnline') {
+                    echo 'Building the project on agent...'
+                    bat "dotnet build ${SOLUTION_NAME} --configuration Release"
+                }
         }
 
         stage('Run Tests') {
@@ -37,12 +39,12 @@ pipeline {
         
         stage('Build and Push Docker Image') {
             steps {
-                script {
+                dir('WebBanHangOnline') {
                     def customImage = docker.build(DOCKER_IMAGE_NAME)
 
                     docker.withRegistry('https://registry.hub.docker.com', DOCKER_HUB_CREDENTIALS_ID) {
-                        customImage.push("${env.BUILD_NUMBER}")
-                        customImage.push("latest")
+                         customImage.push("${env.BUILD_NUMBER}")
+                         customImage.push("latest")
                     }
                 }
             }
