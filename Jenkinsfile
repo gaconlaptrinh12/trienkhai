@@ -19,9 +19,7 @@ pipeline {
         stage('Restore Packages') {
             steps {
                 echo 'Restoring .NET packages on agent...'
-                dir('WebBanHangOnline') {
-                    bat 'dotnet restore WebBanHangOnline.sln'
-                }
+                bat 'dotnet restore WebBanHangOnline.sln'
             }
         }
 
@@ -37,9 +35,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo 'Running tests...'
-                dir('WebBanHangOnline') {
-                    bat 'dotnet test WebBanHangOnline.sln --no-build --verbosity normal'
-                }
+                bat 'dotnet test WebBanHangOnline.sln --no-build --verbosity normal'
             }
         }
         
