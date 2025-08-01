@@ -6,6 +6,7 @@ pipeline {
         DOCKER_IMAGE_NAME = "springmuch/webbanhangonline" 
         SOLUTION_NAME = "WebBanHangOnline.sln"
         PROJECT_NAME = "WebBanHangOnline.csproj"
+	KUBECONFIG_CREDENTIAL_ID = 'KubeConfigID'
     }
 
     stages {
@@ -55,7 +56,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withKubeConfig(credentialsId: KubeConfigID) {
+                withKubeConfig(credentialsId: KUBECONFIG_CREDENTIAL_ID) {
                     bat 'kubectl apply -f secret.yml'
                     bat 'kubectl apply -f db-deployment.yml'
                     bat 'kubectl apply -f minio-deployment.yml'
