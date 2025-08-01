@@ -16,8 +16,8 @@ spec:
       - name: webbanhang-app
         image: springmuch/webbanhangonline:latest
         ports:
-        - containerPort: 8080 # Cổng cho ứng dụng
-        - containerPort: 8081 # Cổng cho Prometheus
+        - containerPort: 8083 # Cổng cho ứng dụng
+        - containerPort: 8084 # Cổng cho Prometheus
         env:
         # Tách chuỗi kết nối và mật khẩu ra để K8s có thể truyền giá trị từ Secret
         - name: ConnectionStrings__DefaultConnection
@@ -51,4 +51,4 @@ spec:
   ports:
   - protocol: TCP
     port: 80
-    targetPort: 8080
+    targetPort: 8083
