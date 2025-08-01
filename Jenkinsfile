@@ -40,7 +40,7 @@ pipeline {
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    dir('WebBanHangOnline') {
+                    dir('.') {
                          def customImage = docker.build(DOCKER_IMAGE_NAME)
 
                          docker.withRegistry('https://registry.hub.docker.com', DOCKER_HUB_CREDENTIALS_ID) {
