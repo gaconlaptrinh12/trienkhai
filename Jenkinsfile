@@ -13,10 +13,24 @@ pipeline {
             }
         }
 
+        stage('Restore Packages') {
+            steps {
+                echo 'Restoring .NET packages on agent...'
+                bat 'dotnet restore WebBanHangOnline.sln'
+            }
+        }
+
         stage('Build Project') {
             steps {
-                bat 'dotnet restore WebBanHangOnline.sln'
+                echo 'Building the project on agent...'
                 bat 'dotnet build WebBanHangOnline.sln --configuration Release --no-restore'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running tests...'
+                bat 'dotnet test WebBanHangOnline.sln --no-build --verbosity normal'
             }
         }
         
