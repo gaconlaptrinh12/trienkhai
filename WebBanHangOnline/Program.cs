@@ -93,8 +93,10 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var dbContext = services.GetRequiredService<ApplicationDbContext>();
+        await dbContext.Database.EnsureCreatedAsync();
         // Bước 1: Áp dụng các migration còn thiếu
         dbContext.Database.Migrate();
+        Console.WriteLine("Database migration applied successfully.");
         // Bước 2: Seed dữ liệu ban đầu
         await SeedData.Initialize(services);
     }
