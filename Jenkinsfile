@@ -58,7 +58,8 @@ pipeline {
 	stage('Deploy with Docker Compose') {
             steps {
                 echo 'Deploying services using Docker Compose...'
-                bat 'docker-compose down'
+                bat 'docker-compose -f docker-compose.yml down --rmi all'
+                bat 'docker rm -f quanlycongvan_app quanlycongvan_db'
                 bat 'docker-compose up -d'
             }
         }
