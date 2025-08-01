@@ -16,20 +16,27 @@ pipeline {
             }
         }
 
-        stage('Restore and Build and Test Project') {
+        stage('Restore Packages') {
             steps {
-                dir('WebBanHangOnline') {
-                    echo 'Restoring .NET packages...'
-                    bat 'dotnet restore WebBanHangOnline.sln'
-
-                    echo 'Building the project...'
-                    bat "dotnet build ${SOLUTION_NAME} --configuration Release"
-
-                    echo 'Running tests...'
-                    bat 'dotnet test WebBanHangOnline.sln --no-build --verbosity normal'
-                }
+                echo 'Restoring .NET packages on agent...'
+                bat 'dotnet restore WebBanHangOnline.sln'
             }
         }
+
+        stage('Build Project') {
+            steps {
+                echo 'Building the project on agent...'
+                bat 'dotnet build WebBanHangOnline.sln --configuration Release --no-restore'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running tests...'
+                bat 'dotnet test WebBanHangOnline.sln --no-build --verbosity normal'
+            }
+        }
+
         
         stage('Build and Push Docker Image') {
             steps {
