@@ -3,7 +3,9 @@ version: '3.8'
 services:
   # Dịch vụ ứng dụng WebBanHangOnline
   app:
-    build: .
+    build:
+      context: ./WebBanHangOnline
+      dockerfile: Dockerfile
     container_name: webbanhang_app
     ports:
       - "8003:8080" # HTTP
