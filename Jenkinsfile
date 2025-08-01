@@ -55,13 +55,15 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                bat 'kubectl apply -f secret.yml'
-                bat 'kubectl apply -f db-deployment.yml'
-                bat 'kubectl apply -f minio-deployment.yml'
-                
-                bat "kubectl set image deployment/webbanhang-app webbanhang-app=${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
-                
-                bat 'kubectl apply -f app-deployment.yml'
+                withKubeConfig(credentialsId: KUBECONFIG_CREDENTIAL_ID) {
+                    bat 'kubectl apply -f secret.yml'
+                    bat 'kubectl apply -f db-deployment.yml'
+                    bat 'kubectl apply -f minio-deployment.yml'
+                    
+                    bat "kubectl set image deployment/webbanhang-app webbanhang-app=${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
+                    
+                    bat 'kubectl apply -f app-deployment.yml'
+                }
             }
         }
     }
