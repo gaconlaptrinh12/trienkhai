@@ -4,6 +4,7 @@ using WebBanHangOnline.Data;
 using WebBanHangOnline.Models;
 using Microsoft.AspNetCore.Http;
 using Prometheus; // Thêm thư viện Prometheus để thu thập metrics
+using Minio; // Thêm using cho MinIO
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,31 @@ builder.Services.AddSession(options =>
     // trong Kubernetes, nơi HTTPS được xử lý ở tầng ngoài.
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.None;
+});
+
+// 6. Cấu hình và đăng ký MinIO Client
+builder.Services.AddSingleton<IMinioClient>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    // Lấy thông tin cấu hình từ docker-compose.yml hoặc app-deployment.yml
+    var endpoint = configuration["Minio:Endpoint"];
+    var accessKey = configuration["Minio:AccessKey"];
+    var secretKey = configuration["Minio:SecretKey"];
+
+    if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(accessKey) || string.IsNullOrEmpty(secretKey))
+    {
+        throw new InvalidOperationException("Cấu hình MinIO (Endpoint, AccessKey, SecretKey) bị thiếu. Vui lòng kiểm tra biến môi trường hoặc file cấu hình.");
+    }
+
+    // SDK cần biết có sử dụng SSL hay không.
+    // Trong môi trường container, kết nối nội bộ thường là không có SSL (http).
+    bool useSsl = endpoint.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+
+    return new MinioClient()
+        .WithEndpoint(endpoint)
+        .WithCredentials(accessKey, secretKey)
+        .WithSSL(useSsl)
+        .Build();
 });
 
 
