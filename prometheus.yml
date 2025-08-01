@@ -3,8 +3,6 @@ global:
 
 scrape_configs:
   - job_name: 'web_ban_hang_online_app'
-    scheme: https
-    tls_config:
-      insecure_skip_verify: true # Dùng cho môi trường dev
+    scheme: http
     static_configs:
       - targets: ['app:8084']
