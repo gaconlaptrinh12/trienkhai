@@ -8,11 +8,11 @@ services:
       dockerfile: Dockerfile
     container_name: webbanhang_app
     ports:
-      - "8003:8080" # HTTP
-      - "8004:8081" # HTTPS
+      - "8003:8083" # HTTP
+      - "8004:8084" # HTTPS
     environment:
       - ConnectionStrings__DefaultConnection=Server=db;Database=WebBanHangOnlineDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
-      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_URLS=https://+:8084;http://+:8083
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${PFX_PASSWORD}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       # Cấu hình MinIO cho ứng dụng

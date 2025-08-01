@@ -7,4 +7,4 @@ scrape_configs:
     tls_config:
       insecure_skip_verify: true # Dùng cho môi trường dev
     static_configs:
-      - targets: ['app:8081']
+      - targets: ['app:8084']
