@@ -45,7 +45,7 @@ kind: Service
 metadata:
   name: webbanhang-app-service
 spec:
-  type: LoadBalancer # Expose ra bên ngoài
+  type: LoadBalancer
   selector:
     app: webbanhang-app
   ports:
