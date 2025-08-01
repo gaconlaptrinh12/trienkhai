@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using System;
 using System.Linq;
+using Minio;
+using Minio.DataModel.Args;
 
 namespace WebBanHangOnline.Areas.Admin.Controllers
 {
@@ -17,12 +19,12 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
     public class AdminProductController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IMinioClient _minioClient;
 
-        public AdminProductController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public AdminProductController(ApplicationDbContext context, IMinioClient minioClient)
         {
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
+            _minioClient = minioClient;
         }
 
         // GET: Admin/AdminProduct
@@ -188,30 +190,73 @@ namespace WebBanHangOnline.Areas.Admin.Controllers
 
         private async Task<string> SaveImage(IFormFile imageFile)
         {
-            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images/products");
-            if (!Directory.Exists(uploadsFolder))
+            var bucketName = "products"; // Tên bucket trên MinIO
+            var objectName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+
+            // Kiểm tra xem bucket đã tồn tại chưa
+            var bucketExistsArgs = new BucketExistsArgs().WithBucket(bucketName);
+            bool found = await _minioClient.BucketExistsAsync(bucketExistsArgs);
+            if (!found)
             {
-                Directory.CreateDirectory(uploadsFolder);
+                var makeBucketArgs = new MakeBucketArgs().WithBucket(bucketName);
+                await _minioClient.MakeBucketAsync(makeBucketArgs);
             }
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await imageFile.CopyToAsync(fileStream);
-            }
-            return "/images/products/" + uniqueFileName;
+
+            // Upload file lên MinIO
+            await _minioClient.PutObjectAsync(
+                new PutObjectArgs()
+                    .WithBucket(bucketName)
+                    .WithObject(objectName)
+                    .WithStreamData(imageFile.OpenReadStream())
+                    .WithObjectSize(imageFile.Length)
+                    .WithContentType(imageFile.ContentType)
+            );
+
+            // Trả về URL của ảnh, bạn cần cấu hình public access cho bucket
+            // Hoặc tạo URL có chữ ký (presigned URL)
+            var minioEndpoint = "localhost:9000"; // Lấy từ config
+            return $"http://{minioEndpoint}/{bucketName}/{objectName}";
         }
 
-        private void DeleteImage(string imageUrl)
+        private async Task DeleteImage(string imageUrl)
         {
-            if (string.IsNullOrEmpty(imageUrl) || imageUrl == "/images/default-product.png")
+            // 1. Kiểm tra để không xóa URL rỗng hoặc ảnh mặc định
+            if (string.IsNullOrEmpty(imageUrl) || imageUrl.EndsWith("default-product.png"))
             {
-                return; // Không xóa ảnh mặc định
+                return;
             }
-            var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, imageUrl.TrimStart('/'));
-            if (System.IO.File.Exists(imagePath))
+
+            try
             {
-                System.IO.File.Delete(imagePath);
+                // 2. Phân tích URL để lấy tên bucket và tên object
+                var uri = new Uri(imageUrl);
+                // AbsolutePath sẽ có dạng "/bucketName/objectName.jpg"
+                var pathSegments = uri.AbsolutePath.Trim('/').Split('/');
+
+                // URL phải có ít nhất 2 phần: bucket và object
+                if (pathSegments.Length < 2)
+                {
+                    // Có thể log lại lỗi nếu URL không đúng định dạng
+                    return;
+                }
+
+                var bucketName = pathSegments[0];
+                var objectName = string.Join("/", pathSegments.Skip(1)); // Xử lý trường hợp tên object chứa dấu '/'
+
+                // 3. Tạo yêu cầu xóa object
+                var args = new RemoveObjectArgs()
+                    .WithBucket(bucketName)
+                    .WithObject(objectName);
+
+                // 4. Gọi MinIO client để thực hiện xóa
+                await _minioClient.RemoveObjectAsync(args);
+            }
+            catch (Exception ex)
+            {
+                // Ghi lại log lỗi để debug. 
+                // Trong nhiều trường hợp, bạn có thể bỏ qua lỗi khi xóa (ví dụ: file không tồn tại),
+                // nhưng việc log lại sẽ giúp theo dõi các vấn đề không mong muốn.
+                Console.WriteLine($"Error deleting image from MinIO: {imageUrl}. Exception: {ex.Message}");
             }
         }
     }

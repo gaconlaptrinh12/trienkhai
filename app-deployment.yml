@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webbanhang-app
+spec:
+  replicas: 2 # Có thể tăng số lượng để chịu tải
+  selector:
+    matchLabels:
+      app: webbanhang-app
+  template:
+    metadata:
+      labels:
+        app: webbanhang-app
+    spec:
+      containers:
+      - name: webbanhang-app
+        image: springmuch/webbanhangonline:latest
+        ports:
+        - containerPort: 8080 # Cổng cho ứng dụng
+        - containerPort: 8081 # Cổng cho Prometheus
+        env:
+        # Tách chuỗi kết nối và mật khẩu ra để K8s có thể truyền giá trị từ Secret
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=webbanhang-db-service;Database=WebBanHangOnlineDB;User Id=sa;Password=$(SA_PASSWORD);TrustServerCertificate=True"
+        - name: SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: webbanhang-secrets
+              key: sa_password
+        - name: Minio__Endpoint
+          value: "minio-service:9000"
+        - name: Minio__AccessKey
+          valueFrom:
+            secretKeyRef:
+              name: webbanhang-secrets
+              key: minio_access_key
+        - name: Minio__SecretKey
+          valueFrom:
+            secretKeyRef:
+              name: webbanhang-secrets
+              key: minio_secret_key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webbanhang-app-service
+spec:
+  type: LoadBalancer # Expose ra bên ngoài
+  selector:
+    app: webbanhang-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080

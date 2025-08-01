@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHang\\WebBanHangOnline.csproj": {}
+    "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHangOnline\\WebBanHangOnline.csproj": {}
   },
   "projects": {
-    "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHang\\WebBanHangOnline.csproj": {
+    "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHangOnline\\WebBanHangOnline.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHang\\WebBanHangOnline.csproj",
+        "projectUniqueName": "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHangOnline\\WebBanHangOnline.csproj",
         "projectName": "WebBanHangOnline",
-        "projectPath": "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHang\\WebBanHangOnline.csproj",
+        "projectPath": "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHangOnline\\WebBanHangOnline.csproj",
         "packagesPath": "C:\\Users\\phamh\\.nuget\\packages\\",
-        "outputPath": "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHang\\obj\\",
+        "outputPath": "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHangOnline\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -68,6 +68,14 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[9.0.7, )"
+            },
+            "Minio": {
+              "target": "Package",
+              "version": "[6.0.5, )"
+            },
+            "prometheus-net.AspNetCore": {
+              "target": "Package",
+              "version": "[8.2.1, )"
             }
           },
           "imports": [
