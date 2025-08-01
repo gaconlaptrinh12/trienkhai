@@ -54,6 +54,16 @@ pipeline {
             }
         }
 
+
+	stage('Deploy with Docker Compose') {
+            steps {
+                echo 'Deploying services using Docker Compose...'
+                bat 'docker-compose down'
+                bat 'docker-compose up -d'
+            }
+        }
+
+
         stage('Deploy to Kubernetes') {
             steps {
                 withKubeConfig(credentialsId: KUBECONFIG_CREDENTIAL_ID) {

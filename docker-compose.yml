@@ -6,8 +6,8 @@ services:
     build: .
     container_name: webbanhang_app
     ports:
-      - "8000:8080" # HTTP
-      - "8001:8081" # HTTPS
+      - "8003:8080" # HTTP
+      - "8004:8081" # HTTPS
     environment:
       - ConnectionStrings__DefaultConnection=Server=db;Database=WebBanHangOnlineDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
       - ASPNETCORE_URLS=https://+:8081;http://+:8080
@@ -56,14 +56,14 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "9092:9090"
 
   # Dịch vụ trực quan hóa Grafana
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "3002:3000"
     volumes:
       - grafana-data:/var/lib/grafana
 

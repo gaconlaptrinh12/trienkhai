@@ -8,7 +8,7 @@ using Prometheus; // Thêm thư viện Prometheus để thu thập metrics
 var builder = WebApplication.CreateBuilder(args);
 
 // Thêm dòng này để chỉ định cổng lắng nghe của ứng dụng, cần thiết cho Docker
-builder.WebHost.UseUrls("http://*:8080", "https://*:8081");
+builder.WebHost.UseUrls("http://*:8083", "https://*:8084");
 
 // 1. Cấu hình kết nối đến SQL Server
 // Lấy chuỗi kết nối từ biến môi trường hoặc file appsettings.
