@@ -2,12 +2,18 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
+# Định nghĩa một đối số để chỉ định thư mục chứa mã nguồn.
+# Giá trị này sẽ được truyền từ Jenkinsfile.
+ARG BUILD_CONTEXT
+
 # Sao chép các file project và restore package
-COPY ["WebBanHangOnline.csproj", "."]
+# Lệnh COPY này sẽ sử dụng BUILD_CONTEXT để tìm file .csproj
+COPY ["${BUILD_CONTEXT}/WebBanHangOnline.csproj", "./"]
 RUN dotnet restore "WebBanHangOnline.csproj"
 
 # Sao chép toàn bộ mã nguồn
-COPY . .
+# Lệnh COPY này sẽ sao chép toàn bộ nội dung từ thư mục BUILD_CONTEXT
+COPY "${BUILD_CONTEXT}/." .
 RUN dotnet build "WebBanHangOnline.csproj" -c Release -o /app/build
 
 # Publish ứng dụng
