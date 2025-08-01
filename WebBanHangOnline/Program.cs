@@ -16,6 +16,15 @@ builder.WebHost.UseUrls("http://*:8083", "https://*:8084");
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
                        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+// Lấy mật khẩu từ biến môi trường SA_PASSWORD
+var saPassword = builder.Configuration["SA_PASSWORD"];
+// Nếu mật khẩu tồn tại, thêm nó vào chuỗi kết nối.
+// Cấu hình này giúp chuỗi kết nối hoạt động cả trong Docker Compose và K8s
+if (!string.IsNullOrEmpty(saPassword))
+{
+    connectionString = $"{connectionString};Password={saPassword}";
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString, sqlServerOptionsAction: sqlOptions =>
     {
@@ -93,11 +102,29 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var dbContext = services.GetRequiredService<ApplicationDbContext>();
-        await dbContext.Database.EnsureCreatedAsync();
-        // Bước 1: Áp dụng các migration còn thiếu
-        dbContext.Database.Migrate();
-        Console.WriteLine("Database migration applied successfully.");
-        // Bước 2: Seed dữ liệu ban đầu
+        int retryCount = 0;
+        const int maxRetries = 10;
+        while (retryCount < maxRetries)
+        {
+            try
+            {
+                await dbContext.Database.MigrateAsync();
+                Console.WriteLine("Database migration applied successfully.");
+                break; // Thoát vòng lặp nếu thành công
+            }
+            catch (Exception ex)
+            {
+                retryCount++;
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, $"Failed to migrate database, retrying... ({retryCount}/{maxRetries})");
+                await Task.Delay(TimeSpan.FromSeconds(5)); // Đợi 5 giây trước khi thử lại
+                if (retryCount >= maxRetries)
+                {
+                    logger.LogError(ex, "Exceeded max retries for database migration.");
+                    throw; // Ném lỗi nếu đã thử lại quá nhiều lần
+                }
+            }
+        }
         await SeedData.Initialize(services);
     }
     catch (Exception ex)
