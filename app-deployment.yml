@@ -39,6 +39,11 @@ spec:
             secretKeyRef:
               name: webbanhang-secrets
               key: minio_secret_key
+        - name: Minio__PublicEndpoint
+          valueFrom:
+            secretKeyRef:
+              name: webbanhang-secrets
+              key: minio_public_endpoint
 ---
 apiVersion: v1
 kind: Service

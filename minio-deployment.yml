@@ -48,6 +48,7 @@ kind: Service
 metadata:
   name: minio-service
 spec:
+  type: LoadBalancer
   selector:
     app: minio
   ports:

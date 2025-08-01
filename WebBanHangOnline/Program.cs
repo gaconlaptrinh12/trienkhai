@@ -98,7 +98,6 @@ builder.Services.AddSingleton<IMinioClient>(sp =>
         .Build();
 });
 
-
 var app = builder.Build();
 
 // Thêm cấu hình cho Prometheus
