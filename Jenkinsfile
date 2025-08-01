@@ -25,10 +25,8 @@ pipeline {
 
         stage('Build Project') {
             steps {
-                dir('WebBanHangOnline') {
-                    echo 'Building the project on agent...'
-                    bat "dotnet build ${SOLUTION_NAME} --configuration Release"
-                }
+               echo 'Building the project on agent...'
+               bat "dotnet build ${SOLUTION_NAME} --configuration Release"
             }
         }
 
