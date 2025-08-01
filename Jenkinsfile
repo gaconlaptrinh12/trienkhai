@@ -9,6 +9,7 @@ pipeline {
     stages {
         stage('Configure Git') {
             steps {
+		echo "Adding Jenkins workspace to Git's safe directories..."
                 bat 'git config --global --add safe.directory "%WORKSPACE%"'
             }
         }
