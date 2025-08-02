@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: webbanhang-app
 spec:
-  # SỬA LỖI: Giảm số lượng bản sao xuống còn 1 để tránh lỗi tranh chấp database
   replicas: 1 
   selector:
     matchLabels:
@@ -17,9 +16,11 @@ spec:
       - name: webbanhang-app
         image: springmuch/webbanhangonline:latest
         ports:
+        # Giữ lại cả hai cổng vì chúng ta sẽ cấu hình Kestrel để xử lý cả HTTP và HTTPS
         - containerPort: 8083
         - containerPort: 8084
         env:
+        # --- Các biến môi trường hiện có ---
         - name: ConnectionStrings__DefaultConnection
           value: "Server=webbanhang-db-service;Database=WebBanHangOnlineDB;User Id=sa;Password=$(SA_PASSWORD);TrustServerCertificate=True"
         - name: SA_PASSWORD
@@ -44,6 +45,29 @@ spec:
             secretKeyRef:
               name: webbanhang-secrets
               key: minio_public_endpoint
+
+        # --- SỬA LỖI: Thêm các biến môi trường để Kestrel tìm thấy chứng chỉ ---
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+          value: /https/aspnetapp.pfx
+        - name: ASPNETCORE_Kestrel__Certificates__Default__Password
+          valueFrom:
+            secretKeyRef:
+              # Secret này sẽ được tạo ở bước tiếp theo
+              name: tls-certificate 
+              key: password
+        
+        # --- SỬA LỖI: Mount volume chứa chứng chỉ vào container ---
+        volumeMounts:
+        - name: https-cert
+          mountPath: /https
+          readOnly: true
+
+      # --- SỬA LỖI: Định nghĩa volume để lấy dữ liệu từ Secret ---
+      volumes:
+      - name: https-cert
+        secret:
+          secretName: tls-certificate
+
 ---
 apiVersion: v1
 kind: Service
@@ -54,6 +78,12 @@ spec:
   selector:
     app: webbanhang-app
   ports:
-  - protocol: TCP
+  - name: http
+    protocol: TCP
     port: 80
     targetPort: 8083
+  # Thêm cổng HTTPS để có thể truy cập từ bên ngoài
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8084

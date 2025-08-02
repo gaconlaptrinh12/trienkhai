@@ -31,15 +31,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "WebBanHangOnline",
+              "Title": "WebBanHangOnline.csproj",
               "DocumentMoniker": "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHangOnline\\WebBanHangOnline.csproj",
               "RelativeDocumentMoniker": "WebBanHangOnline\\WebBanHangOnline.csproj",
               "ToolTip": "E:\\school\\TrienKhaiPhanMem\\WebBanHangOnline\\WebBanHangOnline\\WebBanHangOnline.csproj",
               "RelativeToolTip": "WebBanHangOnline\\WebBanHangOnline.csproj",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAABUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-08-01T04:25:14.665Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-01T04:25:14.665Z"
             },
             {
               "$type": "Document",
@@ -51,8 +50,7 @@
               "RelativeToolTip": "WebBanHangOnline\\Areas\\Admin\\Controllers\\AdminProductController.cs",
               "ViewState": "AgIAANAAAAAAAAAAAAAowAQBAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-31T21:11:29.973Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-31T21:11:29.973Z"
             },
             {
               "$type": "Document",
@@ -64,8 +62,7 @@
               "RelativeToolTip": "WebBanHangOnline\\Controllers\\ProductController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-31T21:11:17.898Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-31T21:11:17.898Z"
             },
             {
               "$type": "Document",
