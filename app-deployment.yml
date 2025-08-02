@@ -80,10 +80,10 @@ spec:
   ports:
   - name: http
     protocol: TCP
-    port: 80
+    port: 83
     targetPort: 8083
   # Thêm cổng HTTPS để có thể truy cập từ bên ngoài
   - name: https
     protocol: TCP
-    port: 443
+    port: 84
     targetPort: 8084
