@@ -68,6 +68,7 @@ pipeline {
             steps {
                 withKubeConfig(credentialsId: KUBECONFIG_CREDENTIAL_ID) {
                     bat 'kubectl apply -f secret.yml'
+		    bat 'kubectl apply -f tls-certificate.yml'
                     bat 'kubectl apply -f db-deployment.yml'
                     bat 'kubectl apply -f minio-deployment.yml'
 
