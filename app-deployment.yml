@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: webbanhang-app
-        image: springmuch/webbanhangonline:latest
+        image: chuson/webbanhangonline:latest
         ports:
         # Giữ lại cả hai cổng vì chúng ta sẽ cấu hình Kestrel để xử lý cả HTTP và HTTPS
         - containerPort: 8083
