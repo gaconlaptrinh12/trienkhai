@@ -20,7 +20,7 @@ services:
       - Minio__AccessKey=${MINIO_ROOT_USER}
       - Minio__SecretKey=${MINIO_ROOT_PASSWORD}
     volumes:
-      - C:/Users/phamh/.aspnet/https/aspnetapp.pfx:/https/aspnetapp.pfx:ro
+      - C:/Users/cson5/.aspnet/https/aspnetapp.pfx:/https/aspnetapp.pfx:ro
     depends_on:
       - db
       - minio

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WebBanHangOnline")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+65ee735c778b50516efc89917fed73d303ceb7a8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b99378789ae675e0a24f08d31cf52663d9faf86")]
 [assembly: System.Reflection.AssemblyProductAttribute("WebBanHangOnline")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WebBanHangOnline")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
